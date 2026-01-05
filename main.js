@@ -456,33 +456,14 @@ class Game {
     bindEvents() {
         document.getElementById('btn-classic').addEventListener('click', () => {
             document.getElementById('start-screen').classList.add('hidden');
+            this.toggleFullscreen();
             this.start('classic');
         });
         document.getElementById('btn-arcade').addEventListener('click', () => {
             document.getElementById('start-screen').classList.add('hidden');
+            this.toggleFullscreen();
             this.start('arcade');
         });
-
-        // Fullscreen Toggle
-        const btnFull = document.getElementById('btn-fullscreen');
-        if (btnFull) {
-            btnFull.addEventListener('click', () => {
-                const elem = document.documentElement;
-                if (!document.fullscreenElement) {
-                    if (elem.requestFullscreen) {
-                        elem.requestFullscreen();
-                    } else if (elem.webkitRequestFullscreen) { /* Safari */
-                        elem.webkitRequestFullscreen();
-                    } else if (elem.msRequestFullscreen) { /* IE11 */
-                        elem.msRequestFullscreen();
-                    }
-                } else {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    }
-                }
-            });
-        }
 
         // Check if restart button exists
         const restartBtn = document.getElementById('restart-btn');
@@ -497,6 +478,19 @@ class Game {
         this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
         this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
         this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
+    }
+
+    toggleFullscreen() {
+        const elem = document.documentElement;
+        if (!document.fullscreenElement) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log('Fullscreen denied:', err));
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+        }
     }
 
     loop() {
