@@ -45,7 +45,7 @@ Este é um projeto estático. Para jogar:
 1.  Clone o repositório.
 2.  Abra o arquivo `index.html` no seu navegador.
 
-Ou acesse a versão online em: [(https://thalytris.vercel.app/)]
+Ou acesse a versão online em: [ThalyTETRIS](https://thalytris.vercel.app/)
 
 ---
 Desenvolvido por Elieber Fernandes Martins.
