@@ -121,3 +121,27 @@ h1 {
     color: #aaa;
     margin: -5px 0 15px 0;
 }
+
+.footer-link {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+    z-index: 100;
+    pointer-events: auto;
+}
+
+.footer-link a {
+    color: #555;
+    display: inline-block;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.footer-link a:hover {
+    color: #fff;
+    transform: scale(1.2);
+}
+
+.footer-link svg {
+    display: block;
+}
