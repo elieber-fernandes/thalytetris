@@ -2,7 +2,7 @@
 
 **ThalyTETRIS** é uma releitura moderna do clássico Tetris, mas com um toque de física: os blocos se transformam em **areia** ao tocar o chão!
 
-![ThalyTETRIS Gameplay](https://via.placeholder.com/800x400?text=ThalyTETRIS+Gameplay)
+
 
 ## 🎮 Como Jogar
 
