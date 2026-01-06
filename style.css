@@ -149,3 +149,23 @@ h1 {
 .footer-link svg {
     display: block;
 }
+
+.mute-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #444;
+    color: white;
+    font-size: 24px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 100;
+    width: auto;
+    display: block;
+}
+
+.mute-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}

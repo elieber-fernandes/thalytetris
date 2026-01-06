@@ -42,6 +42,109 @@ Object.keys(BASE_SHAPES).forEach(k => {
     SHAPES[k] = scaleShape(BASE_SHAPES[k], SCALE_FACTOR);
 });
 
+class SoundManager {
+    constructor() {
+        this.ctx = null;
+        this.gainNode = null;
+        this.muted = false;
+
+        // Configurar botão de mudo
+        setTimeout(() => {
+            const btn = document.getElementById('btn-mute');
+            if (btn) {
+                btn.addEventListener('click', () => this.toggleMute());
+                // Impedir que o botão foque e roube input do teclado
+                btn.addEventListener('hidden', (e) => e.preventDefault());
+                btn.addEventListener('mousedown', (e) => e.preventDefault());
+            }
+        }, 100);
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioContext();
+            this.gainNode = this.ctx.createGain();
+            this.gainNode.connect(this.ctx.destination);
+            this.gainNode.gain.value = 0.3; // Volume mestre inicial
+        } else if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    toggleMute() {
+        this.muted = !this.muted;
+        const btn = document.getElementById('btn-mute');
+        if (this.muted) {
+            if (this.gainNode) this.gainNode.gain.value = 0;
+            if (btn) btn.innerText = '🔇';
+        } else {
+            if (this.gainNode) this.gainNode.gain.value = 0.3;
+            if (btn) btn.innerText = '🔊';
+            this.init(); // Garantir que iniciou ao desmutar
+        }
+    }
+
+    playTone(freq, type, duration, startTime = 0) {
+        if (this.muted || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + startTime);
+
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime + startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + startTime + duration);
+
+        osc.connect(gain);
+        gain.connect(this.gainNode);
+
+        osc.start(this.ctx.currentTime + startTime);
+        osc.stop(this.ctx.currentTime + startTime + duration);
+    }
+
+    playMove() {
+        // Blip curto
+        this.playTone(300, 'triangle', 0.05);
+    }
+
+    playRotate() {
+        // Blip um pouco mais agudo
+        this.playTone(500, 'sine', 0.1);
+    }
+
+    playDrop() {
+        // Som mais grave ("thud")
+        if (this.muted || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.frequency.setValueAtTime(100, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+        osc.connect(gain);
+        gain.connect(this.gainNode);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.15);
+    }
+
+    playClear() {
+        // Acorde feliz
+        this.playTone(523.25, 'sine', 0.2, 0);   // C5
+        this.playTone(659.25, 'sine', 0.2, 0.1); // E5
+        this.playTone(783.99, 'sine', 0.4, 0.2); // G5
+    }
+
+    playGameOver() {
+        // Descendente triste
+        this.playTone(400, 'sawtooth', 0.3, 0);
+        this.playTone(300, 'sawtooth', 0.3, 0.3);
+        this.playTone(200, 'sawtooth', 0.8, 0.6);
+    }
+}
+
 class Game {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
@@ -55,6 +158,7 @@ class Game {
 
         this.grid = Array.from({ length: CONFIG.cols }, () => Array(CONFIG.rows).fill(null));
         this.particles = []; // Para efeitos
+        this.soundManager = new SoundManager();
 
         this.score = 0;
         this.level = 1;
@@ -183,6 +287,7 @@ class Game {
         const newShape = this.currentPiece.shape[0].map((_, i) => this.currentPiece.shape.map(row => row[i]).reverse());
         if (!this.checkCollision(this.currentPiece.x, this.currentPiece.y, newShape)) {
             this.currentPiece.shape = newShape;
+            this.soundManager.playRotate();
         }
     }
 
@@ -191,6 +296,10 @@ class Game {
         if (!this.checkCollision(this.currentPiece.x + dx, this.currentPiece.y + dy)) {
             this.currentPiece.x += dx;
             this.currentPiece.y += dy;
+            // Som de movimento apenas para lateral (dx != 0) e controlado para não spammar em soft drop
+            if (dx !== 0) {
+                this.soundManager.playMove(); // Tocar som, mas cuidado com spam se for contínuo
+            }
             return true;
         }
         return false;
@@ -233,6 +342,7 @@ class Game {
         if (hitLimit) {
             this.gameOver();
         } else {
+            this.soundManager.playDrop(); // Som de impacto leve
             this.checkLines();
         }
     }
@@ -360,6 +470,8 @@ class Game {
             let points = pixelsToRemove.length * 10;
             this.score += points;
 
+            this.soundManager.playClear(); // Som de limpar linha!
+
             // Atualizar linhas limpas (aproximado: total de pixels / largura)
             // Ou apenas contar 1 "linha" por evento de limpeza
             this.linesCleared += 1;
@@ -406,6 +518,7 @@ class Game {
 
     gameOver() {
         this.isPlaying = false;
+        this.soundManager.playGameOver();
         document.getElementById('final-score').innerText = this.score;
         document.getElementById('game-over-screen').classList.remove('hidden');
     }
@@ -491,6 +604,7 @@ class Game {
             // Continuar movendo para baixo até colisão
             this.score += 2; // Pontos bônus para drop rápido
         }
+        this.soundManager.playDrop(); // Som mais forte já é tocado no meltPiece, mas podemos reforçar
         this.updateUI(); // Changed from updateScore to updateUI
     }
 
