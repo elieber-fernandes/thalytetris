@@ -77,7 +77,7 @@ class Game {
         this.touchStartY = 0;
         this.lastTouchX = 0;
         this.lastTouchY = 0;
-        this.touchThreshold = 5; // Sensibilidade aumentada (valor menor = mais sensível)
+        this.touchThreshold = 3; // Sensibilidade aumentada (valor menor = mais sensível)
 
         this.bindEvents();
     }
