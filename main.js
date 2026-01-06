@@ -1,8 +1,8 @@
-// Game Configuration
+// Configuração do Jogo
 const CONFIG = {
-    cellSize: 4, // Slightly smaller pixels for better fluid look
-    cols: 80, // Wider board
-    rows: 120, // Taller board
+    cellSize: 4, // Pixels um pouco menores para um visual mais fluido
+    cols: 80, // Tabuleiro mais largo
+    rows: 120, // Tabuleiro mais alto
     gravitySpeed: 5,
     dropSpeed: 30,
     colors: ["#FF5555", "#55FF55", "#5555FF", "#FFFF55", "#FF55FF", "#55FFFF"],
@@ -18,7 +18,7 @@ const BASE_SHAPES = {
     Z: [[1, 1, 0], [0, 1, 1]]
 };
 
-// Function to scale up shapes (e.g. 1 abstract block -> 4x4 grid of pixels)
+// Função para aumentar as formas (ex: 1 bloco abstrato -> grade de 4x4 pixels)
 function scaleShape(shape, scale) {
     const newShape = [];
     for (let r = 0; r < shape.length; r++) {
@@ -36,7 +36,7 @@ function scaleShape(shape, scale) {
     return newShape;
 }
 
-const SCALE_FACTOR = 6; // Each block is 6x6 pixels
+const SCALE_FACTOR = 6; // Cada bloco tem 6x6 pixels
 const SHAPES = {};
 Object.keys(BASE_SHAPES).forEach(k => {
     SHAPES[k] = scaleShape(BASE_SHAPES[k], SCALE_FACTOR);
@@ -54,30 +54,30 @@ class Game {
         this.canvas.height = CONFIG.rows * CONFIG.cellSize;
 
         this.grid = Array.from({ length: CONFIG.cols }, () => Array(CONFIG.rows).fill(null));
-        this.particles = []; // For effects
+        this.particles = []; // Para efeitos
 
         this.score = 0;
         this.level = 1;
         this.linesCleared = 0;
         this.frameCount = 0;
         this.isPlaying = false;
-        this.mode = 'classic'; // 'classic' or 'arcade'
+        this.mode = 'classic'; // 'classic' ou 'arcade'
         this.currentColors = [];
 
         this.currentPiece = null;
         this.nextPiece = null;
 
-        // Input handling
+        // Manipulação de Entrada
         this.keys = {};
         window.addEventListener('keydown', (e) => this.handleInput(e));
         window.addEventListener('keyup', (e) => this.keys[e.code] = false);
 
-        // Touch handling state
+        // Estado de manipulação de toque
         this.touchStartX = 0;
         this.touchStartY = 0;
         this.lastTouchX = 0;
         this.lastTouchY = 0;
-        this.touchThreshold = 5; // Increased sensitivity (lower value = more sensitive)
+        this.touchThreshold = 5; // Sensibilidade aumentada (valor menor = mais sensível)
 
         this.bindEvents();
     }
@@ -92,16 +92,16 @@ class Game {
         this.frameCount = 0;
         this.isPlaying = true;
 
-        // Mode specific setup
+        // Configuração específica do modo
         if (this.mode === 'classic') {
-            // Start with fewer colors, add more partially
+            // Começar com menos cores, adicionar mais gradualmente
             this.currentColors = CONFIG.colors.slice(0, 3);
         } else {
-            // Arcade: All colors from start, focus on speed
+            // Arcade: Todas as cores desde o início, foco na velocidade
             this.currentColors = [...CONFIG.colors];
         }
 
-        this.nextPiece = this.generateRandomPiece(); // Generate first next piece
+        this.nextPiece = this.generateRandomPiece(); // Gerar a primeira próxima peça
         this.spawnPiece();
         this.updateUI();
         this.loop();
@@ -124,11 +124,11 @@ class Game {
     spawnPiece() {
         this.currentPiece = this.nextPiece;
 
-        // Center the new piece
+        // Centralizar a nova peça
         this.currentPiece.x = Math.floor(CONFIG.cols / 2) - Math.floor(this.currentPiece.shape[0].length / 2);
         this.currentPiece.y = 0;
 
-        // Generate new next piece
+        // Gerar nova próxima peça
         this.nextPiece = this.generateRandomPiece();
         this.drawNextPiece();
 
@@ -144,7 +144,7 @@ class Game {
 
         if (!this.nextPiece) return;
 
-        // Calculate centered position
+        // Calcular posição centralizada
         const pieceWidth = this.nextPiece.shape[0].length * CONFIG.cellSize;
         const pieceHeight = this.nextPiece.shape.length * CONFIG.cellSize;
         const offsetX = (this.nextCanvas.width - pieceWidth) / 2;
@@ -209,7 +209,7 @@ class Game {
                     let py = this.currentPiece.y + r;
                     if (px >= 0 && px < CONFIG.cols && py >= 0 && py < CONFIG.rows) {
                         this.grid[px][py] = this.currentPiece.color;
-                        if (py < 20) hitLimit = true; // Crossed the line
+                        if (py < 20) hitLimit = true; // Cruzou a linha
                     }
                 }
             });
@@ -225,9 +225,9 @@ class Game {
     }
 
     updatePhysics() {
-        // Iterate bottom-up, randomizing X direction to prevent bias
+        // Iterar de baixo para cima, randomizando a direção X para evitar viés
         for (let y = CONFIG.rows - 2; y >= 0; y--) {
-            // Randomize X traversal
+            // Randomizar travessia X
             let xOrder = [];
             for (let x = 0; x < CONFIG.cols; x++) xOrder.push(x);
             xOrder.sort(() => Math.random() - 0.5);
@@ -236,12 +236,12 @@ class Game {
                 if (this.grid[x][y]) {
                     let color = this.grid[x][y];
 
-                    // 1. Try to fall straight down
+                    // 1. Tentar cair direto para baixo
                     if (!this.grid[x][y + 1]) {
                         this.grid[x][y + 1] = color;
                         this.grid[x][y] = null;
                     }
-                    // 2. Try to fall diagonally (slip)
+                    // 2. Tentar cair na diagonal (deslizar)
                     else {
                         let dirs = Math.random() < 0.5 ? [-1, 1] : [1, -1];
                         let moved = false;
@@ -260,31 +260,31 @@ class Game {
     }
 
     checkLines() {
-        // Sandtrix-style: Check for connected paths from left to right of the SAME color
+        // Estilo Sandtrix: Verificar caminhos conectados da esquerda para a direita da MESMA cor
         const cols = CONFIG.cols;
         const rows = CONFIG.rows;
-        let visitedGlobal = new Set(); // To avoid re-checking nodes across different searches if wanted, but simpler to just do per-color searches
+        let visitedGlobal = new Set(); // Para evitar verificar novamente nós em pesquisas diferentes, mas é mais simples fazer por cor
 
-        // we need to process this carefully. One simple way:
-        // iterate all pixels at x=0. Start a BFS for each unvisited pixel.
-        // If BFS reaches x=cols-1, collect all pixels in that component and remove them.
+        // precisamos processar isso com cuidado. Uma maneira simples:
+        // iterar todos os pixels em x=0. Iniciar uma BFS para cada pixel não visitado.
+        // Se a BFS alcançar x=cols-1, coletar todos os pixels nesse componente e removê-los.
 
         let pixelsToRemove = [];
 
-        // Helper for unique ID
+        // Auxiliar para ID único
         const getId = (x, y) => `${x},${y}`;
 
-        // We need to check for each color present on the left wall? or just iterate all 0-column pixels
+        // Precisamos verificar cada cor presente na parede esquerda? ou apenas iterar todos os pixels da coluna 0
         let visitedInFrame = new Set();
 
         for (let y = 0; y < rows; y++) {
             if (this.grid[0][y] && !visitedInFrame.has(getId(0, y))) {
                 let color = this.grid[0][y];
-                // Start BFS
+                // Iniciar BFS
                 let queue = [{ x: 0, y: y }];
-                let component = []; // Store coordinates of this cluster
+                let component = []; // Armazenar coordenadas deste aglomerado
                 let reachedRight = false;
-                let visitedCluster = new Set(); // Local visited for this BFS
+                let visitedCluster = new Set(); // Visitado local para esta BFS
 
                 visitedCluster.add(getId(0, y));
                 visitedInFrame.add(getId(0, y));
@@ -298,7 +298,7 @@ class Game {
                         reachedRight = true;
                     }
 
-                    // 8 Neighbors (include diagonals) to catch fragments and make lines easier
+                    // 8 Vizinhos (incluir diagonais) para pegar fragmentos e facilitar linhas
                     const dirs = [
                         [0, 1], [0, -1], [1, 0], [-1, 0],
                         [-1, -1], [-1, 1], [1, -1], [1, 1]
@@ -312,7 +312,7 @@ class Game {
                         if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) {
                             if (this.grid[nx][ny] === color && !visitedCluster.has(nid)) {
                                 visitedCluster.add(nid);
-                                visitedInFrame.add(nid); // Mark as processed
+                                visitedInFrame.add(nid); // Marcar como processado
                                 queue.push({ x: nx, y: ny });
                             }
                         }
@@ -326,12 +326,12 @@ class Game {
         }
 
         if (pixelsToRemove.length > 0) {
-            // Remove pixels & Add effects
+            // Remover pixels e adicionar efeitos
             pixelsToRemove.forEach(p => {
                 const color = this.grid[p.x][p.y];
                 this.grid[p.x][p.y] = null;
 
-                // Add particle effect
+                // Adicionar efeito de partícula
                 this.particles.push({
                     x: p.x * CONFIG.cellSize,
                     y: p.y * CONFIG.cellSize,
@@ -343,12 +343,12 @@ class Game {
                 });
             });
 
-            // Score based on pixels cleared
+            // Pontuação baseada nos pixels limpos
             let points = pixelsToRemove.length * 10;
             this.score += points;
 
-            // Update lines cleared (approximate: total pixels / width)
-            // Or just count 1 "line" per clear event
+            // Atualizar linhas limpas (aproximado: total de pixels / largura)
+            // Ou apenas contar 1 "linha" por evento de limpeza
             this.linesCleared += 1;
 
             this.checkLevelUp();
@@ -361,7 +361,7 @@ class Game {
             let p = this.particles[i];
             p.x += p.vx;
             p.y += p.vy;
-            p.life -= 0.03; // Fade out slower
+            p.life -= 0.03; // Desaparecer mais devagar
             p.alpha = p.life;
 
             if (p.life <= 0) {
@@ -371,18 +371,18 @@ class Game {
     }
 
     checkLevelUp() {
-        // Simple level up every 2 lines cleared (since lines are hard to get)
+        // Subir de nível a cada 2 linhas limpas (já que linhas são difíceis de conseguir)
         const newLevel = Math.floor(this.linesCleared / 2) + 1;
         if (newLevel > this.level) {
             this.level = newLevel;
 
             if (this.mode === 'classic') {
-                // Add new color every 3 levels if available
+                // Adicionar nova cor a cada 3 níveis se disponível
                 if (this.level % 3 === 0 && this.currentColors.length < CONFIG.colors.length) {
                     this.currentColors.push(CONFIG.colors[this.currentColors.length]);
                 }
             }
-            // Arcade mode: speed just increases naturally via dropSpeed calculation
+            // Modo Arcade: a velocidade aumenta naturalmente via cálculo de dropSpeed
         }
     }
 
@@ -408,21 +408,21 @@ class Game {
         }
     }
 
-    // Touch Handling
+    // Manipulação de Toque
     handleTouchStart(e) {
         if (!this.isPlaying) return;
-        e.preventDefault(); // Prevent scrolling
+        e.preventDefault(); // Prevenir rolagem
         const touch = e.touches[0];
         this.touchStartX = touch.clientX;
         this.touchStartY = touch.clientY;
         this.lastTouchX = touch.clientX;
         this.lastTouchY = touch.clientY;
 
-        // Long Press to Hard Drop
+        // Toque Longo para Drop Rápido
         this.longPressTimer = setTimeout(() => {
             this.hardDrop();
-            this.longPressTimer = null; // Prevent tap after drop
-        }, 400); // 400ms hold time
+            this.longPressTimer = null; // Prevenir toque após drop
+        }, 400); // tempo de espera de 400ms
     }
 
     handleTouchMove(e) {
@@ -432,21 +432,21 @@ class Game {
         const dx = touch.clientX - this.lastTouchX;
         const dy = touch.clientY - this.lastTouchY;
 
-        // Cancel long press if moved significantly
+        // Cancelar toque longo se moveu significativamente
         if (this.longPressTimer && (Math.abs(touch.clientX - this.touchStartX) > 10 || Math.abs(touch.clientY - this.touchStartY) > 10)) {
             clearTimeout(this.longPressTimer);
             this.longPressTimer = null;
         }
 
-        // Horizontal Movement
+        // Movimento Horizontal
         if (Math.abs(dx) > this.touchThreshold) {
             const direction = dx > 0 ? 1 : -1;
             this.movePiece(direction, 0);
-            this.lastTouchX = touch.clientX; // Reset to avoid continuous super-fast movement
+            this.lastTouchX = touch.clientX; // Resetar para evitar movimento contínuo super rápido
         }
 
-        // Soft Drop (down swipe)
-        if (dy > this.touchThreshold) { // Changed from touchThreshold * 1.5 to touchThreshold as per user's snippet
+        // Drop Suave (deslizar para baixo)
+        if (dy > this.touchThreshold) { // Alterado de touchThreshold * 1.5 para touchThreshold conforme snippet do usuário
             this.movePiece(0, 1);
             this.lastTouchY = touch.clientY;
         }
@@ -456,17 +456,17 @@ class Game {
         if (!this.isPlaying) return;
         e.preventDefault();
 
-        // If timer is still running, it means we didn't hold long enough -> it's a TAP or SWIPE
+        // Se o temporizador ainda estiver rodando, significa que não seguramos tempo suficiente -> é um TOQUE ou DESLIZE
         if (this.longPressTimer) {
             clearTimeout(this.longPressTimer);
             this.longPressTimer = null;
 
-            // Calculate overall movement for Tap detection
-            const touch = e.changedTouches[0]; // Use changedTouches for end event
+            // Calcular movimento geral para detecção de Toque
+            const touch = e.changedTouches[0]; // Usar changedTouches para evento final
             const dx = touch.clientX - this.touchStartX;
             const dy = touch.clientY - this.touchStartY;
 
-            // Tap detection (minimal movement)
+            // Detecção de toque (movimento mínimo)
             if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
                 this.rotatePiece();
             }
@@ -475,8 +475,8 @@ class Game {
 
     hardDrop() {
         while (this.movePiece(0, 1)) {
-            // Keep moving down until collision
-            this.score += 2; // Bonus points for hard drop
+            // Continuar movendo para baixo até colisão
+            this.score += 2; // Pontos bônus para drop rápido
         }
         this.updateUI(); // Changed from updateScore to updateUI
     }
@@ -493,7 +493,7 @@ class Game {
             this.start('arcade');
         });
 
-        // Check if restart button exists
+        // Verificar se o botão de reiniciar existe
         const restartBtn = document.getElementById('restart-btn');
         if (restartBtn) {
             restartBtn.addEventListener('click', () => {
@@ -502,9 +502,9 @@ class Game {
             });
         }
 
-        // Touch Listeners on Document (Full Screen Control)
+        // Ouvintes de Toque no Documento (Controle de Tela Cheia)
         document.addEventListener('touchstart', (e) => {
-            // Only handle game touches if target is not a button or link
+            // Apenas lidar com toques do jogo se o alvo não for um botão ou link
             if (!e.target.closest('button') && !e.target.closest('a') && this.isPlaying) {
                 this.handleTouchStart(e);
             }
@@ -541,29 +541,29 @@ class Game {
 
         this.frameCount++;
 
-        // Physics update (run multiple times per frame for faster fluid simulation?)
-        // For now, once per frame is fine, maybe every other frame if too fast
+        // Atualização de física (rodar várias vezes por quadro para simulação fluida mais rápida?)
+        // Por enquanto, uma vez por quadro está bom, talvez quadro sim quadro não se for muito rápido
         if (this.frameCount % 1 === 0) this.updatePhysics();
 
-        // Handle particles
+        // Lidar com partículas
         this.updateParticles();
 
-        // Continuous line check (every 10 frames)
+        // Verificação contínua de linha (a cada 10 quadros)
         if (this.frameCount % 10 === 0) this.checkLines();
 
-        // Game Drop Logic
+        // Lógica de queda do jogo
         let baseSpeed = CONFIG.dropSpeed;
         if (this.mode === 'arcade') {
-            // Arcade: Speed increases faster
+            // Arcade: Velocidade aumenta mais rápido
             baseSpeed = Math.max(1, CONFIG.dropSpeed - (this.level * 2));
         } else {
-            // Classic: Speed increases slower
+            // Clássico: Velocidade aumenta mais devagar
             baseSpeed = Math.max(5, CONFIG.dropSpeed - this.level);
         }
 
         if (this.frameCount % baseSpeed === 0) {
             if (!this.movePiece(0, 1)) {
-                // Hit bottom or pile
+                // Atingiu o fundo ou pilha
                 this.meltPiece();
                 this.spawnPiece();
             }
@@ -577,7 +577,7 @@ class Game {
         this.ctx.fillStyle = '#000';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Draw Grid (Sand)
+        // Desenhar Grade (Areia)
         for (let x = 0; x < CONFIG.cols; x++) {
             for (let y = 0; y < CONFIG.rows; y++) {
                 if (this.grid[x][y]) {
@@ -587,7 +587,7 @@ class Game {
             }
         }
 
-        // Draw Particles
+        // Desenhar Partículas
         if (this.particles) {
             this.particles.forEach(p => {
                 this.ctx.globalAlpha = p.alpha;
@@ -597,8 +597,8 @@ class Game {
             });
         }
 
-        // Draw Limit Line (Danger Zone)
-        const limitY = 20 * CONFIG.cellSize; // e.g. Row 20
+        // Desenhar Linha Limite (Zona de Perigo)
+        const limitY = 20 * CONFIG.cellSize; // ex: Linha 20
         this.ctx.beginPath();
         this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
         this.ctx.setLineDash([10, 10]);
@@ -607,7 +607,7 @@ class Game {
         this.ctx.stroke();
         this.ctx.setLineDash([]);
 
-        // Draw Current Piece
+        // Desenhar Peça Atual
         if (this.currentPiece) {
             this.ctx.fillStyle = this.currentPiece.color;
             this.currentPiece.shape.forEach((row, r) => {

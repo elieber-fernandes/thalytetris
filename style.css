@@ -42,10 +42,11 @@ canvas#gameCanvas {
     align-items: center;
     background: rgba(0, 0, 0, 0.85);
     z-index: 10;
+    /* Controles Mobile */
 }
 
 @media (min-width: 768px) {
-    /* Hide specific mobile controls on desktop if preferred */
+    /* Esconder controles específicos de mobile no desktop se preferir */
     /* .mobile-controls { display: none; } */
 }
 
@@ -54,7 +55,7 @@ canvas#gameCanvas {
         flex-direction: column;
         align-items: center;
         padding-bottom: 120px;
-        /* Space for buttons */
+        /* Espaço para botões */
     }
 
     .side-panel {
