@@ -151,19 +151,26 @@ h1 {
 }
 
 .mute-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+    position: fixed;
+    /* Fixado na tela, não no container */
+    top: 20px;
+    right: 20px;
     background: rgba(0, 0, 0, 0.5);
     border: 1px solid #444;
     color: white;
     font-size: 24px;
-    padding: 5px 10px;
-    border-radius: 5px;
+    padding: 10px;
+    border-radius: 50%;
+    /* Redondo */
     cursor: pointer;
-    z-index: 100;
-    width: auto;
-    display: block;
+    z-index: 1000;
+    /* Acima de tudo */
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
 }
 
 .mute-btn:hover {
